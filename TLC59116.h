@@ -24,7 +24,7 @@ class TLC59116
     void set_bit(unsigned int *number, unsigned char n, bool x);
     void write_byte(unsigned char regbyte, unsigned char databyte);
     void write_LS();
-    void write_PWMALL(unsigned char value);
+    void write_GRPPWM(unsigned char value);
     void write_IREFALL(unsigned char value);
   public:
     static unsigned const char SOLID=0b01, PWM0=0b10, PWM1=0b11;

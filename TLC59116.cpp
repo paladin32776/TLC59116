@@ -9,11 +9,12 @@ TLC59116::TLC59116(unsigned char address)
   //   Seg2LED = Seg2LED_large;
   // else if (display_type==SMALL)
   //   Seg2LED = Seg2LED_small;
-  mode(SOLID);
-  write_byte(TLC59116_GRPPWM, 0xFF);
-  write_byte(TLC59116_IREF, 0x16); // Imax = 10mA @ Rext = 1k
+  mode(PWM0);
+  //write_byte(TLC59116_GRPPWM, 0xFF);
+  //write_byte(TLC59116_IREF, 0x16); // Imax = 10mA @ Rext = 1k
   write_byte(TLC59116_MODE1,0b00000001); // 000 read-only, 0 no sleep, 000 no subaddresses, 1 respond to All Call
-  write_byte(TLC59116_MODE2,0b00000000); // 0 enable error status flag, 0 reserved, 0 GRP dimming, 0 reserved, 0 outputs change on Stop, 000 reserved
+  write_byte(TLC59116_MODE2,0b00001000); // 0 enable error status flag, 0 reserved, 0 GRP dimming, 0 reserved, 0 outputs change on ACK, 000 reserved
+
 }
 
 void TLC59116::mode(unsigned char nmode)
@@ -40,7 +41,7 @@ void TLC59116::write_LS()
   Wire.endTransmission();     // stop transmitting
 }
 
-void TLC59116::write_PWMALL(unsigned char value)
+void TLC59116::write_GRPPWM(unsigned char value)
 {
   Wire.beginTransmission(addr); // transmit to device #addr
   Wire.write(byte(TLC59116_GRPPWM)); // sends instruction byte
@@ -103,10 +104,11 @@ void TLC59116::clear()
 
 void TLC59116::dutycycle(unsigned char ontime)
 {
-  if (offon[1]==PWM0)
-    write_byte(TLC59116_GRPPWM, ontime);
-  else if (offon[1]==PWM1)
-    write_byte(TLC59116_GRPPWM, ontime);
+    Wire.beginTransmission(addr); // transmit to device #addr
+    Wire.write(byte(TLC59116_PWMX_OFFSET | TLC59116_AI_ALL)); // sends instruction byte including auto increment set
+    for (int n=0; n<16; n++)
+      Wire.write(byte(ontime)); // sends value bytes
+    Wire.endTransmission();     // stop transmitting
 }
 
 void TLC59116::dutycycle(unsigned char nled, unsigned char ontime)
@@ -130,7 +132,7 @@ void TLC59116::clear_allcall()
   write_byte(TLC59116_MODE1, read_byte(TLC59116_MODE1) & 0xFE);
 }
 
-unsigned char PCA9955::get_addr()
+unsigned char TLC59116::get_addr()
 {
   return addr;
 }
